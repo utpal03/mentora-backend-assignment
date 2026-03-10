@@ -15,3 +15,12 @@ export function authenticate(req, res, next) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
+
+export function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.role || !roles.includes(req.role)) {
+      return res.status(403).json({ error: 'Forbidden: insufficient permissions' });
+    }
+    next();
+  };
+}
