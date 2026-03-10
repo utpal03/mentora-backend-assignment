@@ -18,10 +18,70 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  parentStudents Student[]   @relation("ParentStudents")
+  mentorLessons  Lesson[]    @relation("MentorLessons")
+
   @@map("users")
 }
 
+model Student {
+  id        Int      @id @default(autoincrement())
+  parentId  Int      @map("parent_id")
+  name      String
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent   User      @relation("ParentStudents", fields: [parentId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@map("students")
+}
+
+model Lesson {
+  id          Int      @id @default(autoincrement())
+  mentorId    Int      @map("mentor_id")
+  title       String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  mentor   User      @relation("MentorLessons", fields: [mentorId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+  sessions Session[]
+
+  @@map("lessons")
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  studentId Int      @map("student_id")
+  lessonId  Int      @map("lesson_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lesson Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+  @@map("bookings")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  lessonId  Int      @map("lesson_id")
+  date      DateTime
+  topic     String
+  summary   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
 enum Role {
-  parent
-  mentor
+  PARENT
+  MENTOR
+  STUDENT
 }
