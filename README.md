@@ -365,20 +365,3 @@ prisma
 ├── schema.prisma
 └── migrations
 ```
-
----
-
-# License
-
-MIT License.
-
----
-
-If you want, I can also help you make this **even stronger for GitHub reviewers** by adding:
-
-* ⭐ **Architecture explanation section**
-* ⭐ **ER diagram**
-* ⭐ **API request flow diagram**
-* ⭐ **Postman collection**
-
-Those **greatly impress reviewers during backend assignments.**
