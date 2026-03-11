@@ -47,12 +47,13 @@ cp .env.example .env
 
 Environment variables used in this project:
 
-| Variable     | Description                        |
-| ------------ | ---------------------------------- |
-| PORT         | Server port (default: 3000)        |
-| NODE_ENV     | development or production          |
-| JWT_SECRET   | Secret key used to sign JWT tokens |
-| DATABASE_URL | PostgreSQL connection string       |
+| Variable        | Description                        |
+| --------------- | ---------------------------------- |
+| PORT            | Server port (default: 3000)        |
+| NODE_ENV        | development or production          |
+| JWT_SECRET      | Secret key used to sign JWT tokens |
+| DATABASE_URL    | PostgreSQL connection string      |
+| OPENAI_API_KEY  | OpenAI API key (required for LLM summarize) |
 
 Example `.env` file:
 
@@ -61,6 +62,7 @@ PORT=3000
 NODE_ENV=development
 JWT_SECRET=your-secret-key
 DATABASE_URL=postgresql://localhost:5432/mentora
+OPENAI_API_KEY=your-openai-api-key
 ```
 
 ---
@@ -287,6 +289,8 @@ Example request:
 }
 ```
 
+Use the student's **user id** as `studentId` (the `id` returned from `GET /students` or `POST /students`).
+
 Rules:
 
 * The student must belong to the authenticated parent.
@@ -314,6 +318,61 @@ Example request:
   "summary": "Covered basic concepts"
 }
 ```
+
+---
+
+# LLM Summarization (Add-on)
+
+The backend can summarize text via an external LLM (OpenAI).
+
+### Set the API key
+
+Do **not** hardcode the API key. Set it in your environment:
+
+```bash
+# In .env
+OPENAI_API_KEY=sk-your-openai-api-key
+```
+
+### Summarize text
+
+```
+POST /llm/summarize
+```
+
+Request body:
+
+```json
+{
+  "text": "Your longer text to summarize here..."
+}
+```
+
+Response:
+
+```json
+{
+  "summary": "• Point one\n• Point two\n...",
+  "model": "gpt-4o-mini"
+}
+```
+
+**Validation:**
+
+* **400** – `text` is missing, empty, or too short (minimum 50 characters).
+* **413** – `text` is too long (maximum 10,000 characters).
+
+**Protection:** The endpoint uses a simple rate limit (e.g. 10 requests per minute per IP). If the LLM call fails, the API returns **502** or **500** with a clean error message.
+
+**Example curl:**
+
+```bash
+curl -X POST http://localhost:3000/llm/summarize \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Your paragraph or article text that is at least 50 characters long goes here. The API will return a concise summary in a few bullet points or a short paragraph."}'
+```
+
+**Assumptions:** Summary format is 3–6 bullet points or a short paragraph (max ~120 words). The LLM provider is configured via `OPENAI_API_KEY`; no API key is stored in the repository.
 
 ---
 
@@ -356,7 +415,8 @@ src
 │   ├── student
 │   ├── lesson
 │   ├── booking
-│   └── session
+│   ├── session
+│   └── llm
 │
 └── utils
     └── JWT helpers

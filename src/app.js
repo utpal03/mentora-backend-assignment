@@ -7,6 +7,7 @@ import studentRoutes from './modules/student/student.routes.js';
 import lessonRoutes from './modules/lesson/lesson.routes.js';
 import bookingRoutes from './modules/booking/booking.routes.js';
 import sessionRoutes from './modules/session/session.routes.js';
+import llmRoutes from './modules/llm/llm.routes.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/students', studentRoutes);
 app.use('/lessons', lessonRoutes);
 app.use('/bookings', bookingRoutes);
 app.use('/sessions', sessionRoutes);
+app.use('/llm', llmRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });

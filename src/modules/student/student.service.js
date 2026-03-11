@@ -1,4 +1,16 @@
 import * as studentRepository from './student.repository.js';
+import * as authRepository from '../auth/auth.repository.js';
+
+function toStudentPayload(record) {
+  const user = record.studentUser ?? record;
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    name: user.name ?? null,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+}
 
 export async function createStudent(parentId, { name, email }) {
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -6,23 +18,49 @@ export async function createStudent(parentId, { name, email }) {
     error.statusCode = 400;
     throw error;
   }
-  return studentRepository.create({
-    parentId,
-    name: name.trim(),
-    email: email ? String(email).trim() || null : null,
-  });
+
+  const trimmedName = name.trim();
+  const normalizedEmail =
+    email && String(email).trim()
+      ? String(email).trim().toLowerCase()
+      : `student-${parentId}-${Date.now()}@placeholder.mentora`;
+
+  let user = await authRepository.findByEmail(normalizedEmail, 'STUDENT');
+  if (!user) {
+    user = await authRepository.createStudentUser({
+      email: normalizedEmail,
+      name: trimmedName,
+    });
+  }
+
+  const existing = await studentRepository.findParentStudentLink(parentId, user.id);
+  if (existing) {
+    const error = new Error('This student is already linked to you');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  await studentRepository.createParentStudentLink(parentId, user.id);
+  return toStudentPayload({ studentUser: user });
 }
 
 export async function listByParent(parentId) {
-  return studentRepository.findByParentId(parentId);
+  const links = await studentRepository.findStudentsByParentId(parentId);
+  return links.map((link) => toStudentPayload(link));
 }
 
-export async function getStudentByIdAndParent(id, parentId) {
-  const student = await studentRepository.findByIdAndParent(id, parentId);
-  if (!student) {
+export async function getStudentByIdAndParent(studentUserId, parentId) {
+  const link = await studentRepository.findParentStudentLink(parentId, studentUserId);
+  if (!link) {
     const error = new Error('Student not found');
     error.statusCode = 404;
     throw error;
   }
-  return student;
+  const user = await studentRepository.findStudentUserById(studentUserId);
+  if (!user) {
+    const error = new Error('Student not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  return toStudentPayload({ studentUser: user });
 }

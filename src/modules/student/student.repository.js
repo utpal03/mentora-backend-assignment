@@ -1,30 +1,49 @@
 import { prisma } from '../../config/db.js';
 
-export async function create({ parentId, name, email }) {
-  return prisma.student.create({
+export async function createParentStudentLink(parentUserId, studentUserId) {
+  return prisma.parentStudent.create({
     data: {
-      parentId,
-      name,
-      email: email || null,
+      parentUserId,
+      studentUserId,
     },
   });
 }
 
-export async function findByParentId(parentId) {
-  return prisma.student.findMany({
-    where: { parentId },
+export async function findStudentsByParentId(parentUserId) {
+  return prisma.parentStudent.findMany({
+    where: { parentUserId },
     orderBy: { createdAt: 'desc' },
+    include: {
+      studentUser: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+        },
+      },
+    },
   });
 }
 
-export async function findById(id) {
-  return prisma.student.findUnique({
-    where: { id },
+export async function findStudentUserById(id) {
+  return prisma.user.findFirst({
+    where: { id, role: 'STUDENT' },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+    },
   });
 }
 
-export async function findByIdAndParent(id, parentId) {
-  return prisma.student.findFirst({
-    where: { id, parentId },
+export async function findParentStudentLink(parentUserId, studentUserId) {
+  return prisma.parentStudent.findUnique({
+    where: {
+      parentUserId_studentUserId: { parentUserId, studentUserId },
+    },
   });
 }

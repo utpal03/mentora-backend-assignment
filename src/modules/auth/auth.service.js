@@ -3,7 +3,9 @@ import * as authRepository from './auth.repository.js';
 import { generateToken } from '../../utils/auth.js';
 
 const SALT_ROUNDS = 10;
-const ALLOWED_LOGIN_ROLES = ['parent', 'mentor'];
+// All three roles are allowed to log in. NOTE: student can log in to see what are the lessons assigned to them.
+// Students cannot sign up directly but can log in once created by a parent.
+const ALLOWED_LOGIN_ROLES = ['PARENT', 'MENTOR', 'STUDENT'];
 
 function toResponse(user) {
   return {
@@ -26,7 +28,8 @@ export async function signup({ email, password, name, role }) {
     error.statusCode = 400;
     throw error;
   }
-  if (!role || !ALLOWED_LOGIN_ROLES.includes(role)) {
+
+  if (!role || !['PARENT', 'MENTOR'].includes(role)) {
     const error = new Error('Only parents and mentors can sign up. Role must be "PARENT" or "MENTOR".');
     error.statusCode = 400;
     throw error;

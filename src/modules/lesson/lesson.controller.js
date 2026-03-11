@@ -11,9 +11,22 @@ export async function create(req, res) {
   }
 }
 
+export async function listForCurrentMentor(req, res) {
+  try {
+    const lessons = await lessonService.listByMentor(req.userId);
+    res.json(lessons);
+  } catch (err) {
+    const status = err.statusCode || 500;
+    res.status(status).json({ error: err.message });
+  }
+}
+
 export async function getById(req, res) {
   try {
-    const lesson = await lessonService.getLessonById(Number(req.params.id));
+    const lesson = await lessonService.getLessonByIdAndMentor(
+      Number(req.params.id),
+      req.userId
+    );
     res.json(lesson);
   } catch (err) {
     const status = err.statusCode || 500;

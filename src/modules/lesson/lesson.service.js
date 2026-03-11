@@ -37,3 +37,7 @@ export async function getLessonByIdAndMentor(id, mentorId) {
   }
   return lesson;
 }
+
+export async function listByMentor(mentorId) {
+  return lessonRepository.findByMentorId(mentorId);
+}

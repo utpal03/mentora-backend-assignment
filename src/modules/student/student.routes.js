@@ -4,7 +4,7 @@ import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = Router();
 
-router.use(authenticate, requireRole('parent'));
+router.use(authenticate, requireRole('PARENT'));
 
 router.post('/', studentController.create);
 router.get('/', studentController.list);
