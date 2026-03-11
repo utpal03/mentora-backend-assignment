@@ -2,7 +2,16 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../../config/db.js';
 
 const SALT_ROUNDS = 10;
-const DEFAULT_STUDENT_PASSWORD = process.env.DEFAULT_STUDENT_PASSWORD || 'Mentora@123';
+
+function getDefaultStudentPassword() {
+  const value = process.env.DEFAULT_STUDENT_PASSWORD;
+  if (!value || typeof value !== 'string' || !value.trim()) {
+    const error = new Error('DEFAULT_STUDENT_PASSWORD is not configured. Set it in .env.');
+    error.statusCode = 500;
+    throw error;
+  }
+  return value;
+}
 
 // Only parents and mentors can be created via the public signup endpoint.
 const ALLOWED_SIGNUP_ROLES = ['PARENT', 'MENTOR'];
@@ -61,7 +70,8 @@ export async function create({ email, passwordHash, name, role }) {
 
 // Students cannot sign up themselves; each gets the default password.
 export async function createStudentUser({ email, name }) {
-  const passwordHash = await bcrypt.hash(DEFAULT_STUDENT_PASSWORD, SALT_ROUNDS);
+  const defaultPassword = getDefaultStudentPassword();
+  const passwordHash = await bcrypt.hash(defaultPassword, SALT_ROUNDS);
   return prisma.user.create({
     data: {
       email: email.toLowerCase(),
