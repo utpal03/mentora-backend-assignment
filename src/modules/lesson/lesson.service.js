@@ -1,6 +1,17 @@
 import * as lessonRepository from './lesson.repository.js';
 
-export async function createLesson(mentorId, { title, description }) {
+export async function createLesson(authenticatedMentorId, { mentorId, title, description }) {
+  const mentorIdNum = Number(mentorId);
+  if (!mentorIdNum) {
+    const error = new Error('mentorId is required');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (mentorIdNum !== authenticatedMentorId) {
+    const error = new Error('mentorId must match authenticated user');
+    error.statusCode = 403;
+    throw error;
+  }
   if (!title || typeof title !== 'string' || !title.trim()) {
     const error = new Error('Title is required');
     error.statusCode = 400;
@@ -12,7 +23,7 @@ export async function createLesson(mentorId, { title, description }) {
     throw error;
   }
   return lessonRepository.create({
-    mentorId,
+    mentorId: mentorIdNum,
     title: title.trim(),
     description: description.trim(),
   });
@@ -40,4 +51,8 @@ export async function getLessonByIdAndMentor(id, mentorId) {
 
 export async function listByMentor(mentorId) {
   return lessonRepository.findByMentorId(mentorId);
+}
+
+export async function listAll() {
+  return lessonRepository.findAll();
 }

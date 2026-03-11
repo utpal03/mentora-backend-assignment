@@ -6,6 +6,7 @@ const SALT_ROUNDS = 10;
 // All three roles are allowed to log in. NOTE: student can log in to see what are the lessons assigned to them.
 // Students cannot sign up directly but can log in once created by a parent.
 const ALLOWED_LOGIN_ROLES = ['PARENT', 'MENTOR', 'STUDENT'];
+const INVALID_LOGIN_ERROR = 'Invalid email or password';
 
 function toResponse(user) {
   return {
@@ -54,18 +55,18 @@ export async function login({ email, password }) {
   }
   const user = await authRepository.findByEmail(email);
   if (!user) {
-    const error = new Error('Email is incorrect');
+    const error = new Error(INVALID_LOGIN_ERROR);
     error.statusCode = 401;
     throw error;
   }
   if (!ALLOWED_LOGIN_ROLES.includes(user.role)) {
-    const error = new Error('Email is incorrect');
+    const error = new Error(INVALID_LOGIN_ERROR);
     error.statusCode = 401;
     throw error;
   }
   const isValid = await bcrypt.compare(password, user.passwordHash);
   if (!isValid) {
-    const error = new Error('Password is incorrect');
+    const error = new Error(INVALID_LOGIN_ERROR);
     error.statusCode = 401;
     throw error;
   }

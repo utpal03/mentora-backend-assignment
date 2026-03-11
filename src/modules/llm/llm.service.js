@@ -1,3 +1,5 @@
+import { config } from '../../config/index.js';
+
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
@@ -32,7 +34,7 @@ export async function summarizeText(text) {
       body: JSON.stringify({
         model: MODEL,
         messages: prompt,
-        temperature: 1,
+        temperature: config.llmTemperature,
       }),
     });
   } catch (err) {
