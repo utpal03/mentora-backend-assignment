@@ -5,8 +5,9 @@ import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = Router();
 
-router.post('/', authenticate, requireRole('mentor'), lessonController.create);
-router.get('/:id/sessions', authenticate, sessionController.listByLessonId);
-router.get('/:id', authenticate, lessonController.getById);
+router.post('/', authenticate, requireRole('MENTOR'), lessonController.create);
+router.get('/', authenticate, requireRole('MENTOR'), lessonController.listForCurrentMentor);
+router.get('/:id', authenticate, requireRole('MENTOR'), lessonController.getById);
+router.get('/:id/sessions', authenticate, requireRole('MENTOR'), sessionController.listByLessonId);
 
 export default router;

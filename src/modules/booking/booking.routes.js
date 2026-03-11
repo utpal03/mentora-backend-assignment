@@ -4,6 +4,6 @@ import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = Router();
 
-router.post('/', authenticate, requireRole('parent'), bookingController.create);
+router.post('/', authenticate, requireRole('PARENT'), bookingController.create);
 
 export default router;

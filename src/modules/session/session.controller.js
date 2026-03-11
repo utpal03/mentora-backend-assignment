@@ -18,7 +18,7 @@ export async function create(req, res) {
 
 export async function listByLessonId(req, res) {
   try {
-    const sessions = await sessionService.listByLessonId(req.params.id);
+    const sessions = await sessionService.listByLessonId(req.userId, req.params.id);
     res.json(sessions);
   } catch (err) {
     const status = err.statusCode || 500;

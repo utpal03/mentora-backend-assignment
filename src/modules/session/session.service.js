@@ -42,12 +42,21 @@ export async function createSession(mentorId, { lessonId, date, topic, summary }
   });
 }
 
-export async function listByLessonId(lessonId) {
+export async function listByLessonId(mentorId, lessonId) {
   const id = Number(lessonId);
   if (!id) {
     const error = new Error('Invalid lesson id');
     error.statusCode = 400;
     throw error;
   }
+
+  // Ensure the lesson belongs to the current mentor before returning its sessions.
+  const lesson = await lessonRepository.findByIdAndMentor(id, mentorId);
+  if (!lesson) {
+    const error = new Error('Lesson not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
   return sessionRepository.findByLessonId(id);
 }

@@ -18,24 +18,25 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  parentStudents Student[]   @relation("ParentStudents")
-  mentorLessons  Lesson[]    @relation("MentorLessons")
+  asParentRelations  ParentStudent[] @relation("ParentUser")
+  asStudentRelations ParentStudent[] @relation("StudentUser")
+  mentorLessons      Lesson[]        @relation("MentorLessons")
+  bookingsAsStudent  Booking[]       @relation("BookingStudent")
 
   @@map("users")
 }
 
-model Student {
-  id        Int      @id @default(autoincrement())
-  parentId  Int      @map("parent_id")
-  name      String
-  email     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+model ParentStudent {
+  id             Int      @id @default(autoincrement())
+  parentUserId   Int      @map("parent_user_id")
+  studentUserId  Int      @map("student_user_id")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  parent   User      @relation("ParentStudents", fields: [parentId], references: [id], onDelete: Cascade)
-  bookings Booking[]
+  parentUser  User @relation("ParentUser", fields: [parentUserId], references: [id], onDelete: Cascade)
+  studentUser User @relation("StudentUser", fields: [studentUserId], references: [id], onDelete: Cascade)
 
-  @@map("students")
+  @@unique([parentUserId, studentUserId])
+  @@map("parent_students")
 }
 
 model Lesson {
@@ -54,15 +55,15 @@ model Lesson {
 }
 
 model Booking {
-  id        Int      @id @default(autoincrement())
-  studentId Int      @map("student_id")
-  lessonId  Int      @map("lesson_id")
-  createdAt DateTime @default(now()) @map("created_at")
+  id            Int      @id @default(autoincrement())
+  studentUserId Int      @map("student_user_id")
+  lessonId      Int      @map("lesson_id")
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  lesson Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  studentUser User   @relation("BookingStudent", fields: [studentUserId], references: [id], onDelete: Cascade)
+  lesson      Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, lessonId])
+  @@unique([studentUserId, lessonId])
   @@map("bookings")
 }
 

@@ -21,3 +21,10 @@ export async function findByIdAndMentor(id, mentorId) {
     where: { id, mentorId },
   });
 }
+
+export async function findByMentorId(mentorId) {
+  return prisma.lesson.findMany({
+    where: { mentorId },
+    orderBy: { createdAt: 'desc' },
+  });
+}
