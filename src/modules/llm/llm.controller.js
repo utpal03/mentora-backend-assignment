@@ -31,17 +31,7 @@ export async function summarize(req, res) {
     const status = err.statusCode || 500;
     const message =
       status === 500 ? 'Failed to generate summary' : err.message;
-
-    const responseBody = { error: message };
-
-    if (err.providerStatus) {
-      responseBody.providerStatus = err.providerStatus;
-    }
-    if (err.providerError) {
-      responseBody.providerError = err.providerError;
-    }
-
-    return res.status(status).json(responseBody);
+    return res.status(status).json({ error: message });
   }
 }
 

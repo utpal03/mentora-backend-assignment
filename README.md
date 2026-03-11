@@ -47,13 +47,14 @@ cp .env.example .env
 
 Environment variables used in this project:
 
-| Variable        | Description                        |
-| --------------- | ---------------------------------- |
-| PORT            | Server port (default: 3000)        |
-| NODE_ENV        | development or production          |
-| JWT_SECRET      | Secret key used to sign JWT tokens |
-| DATABASE_URL    | PostgreSQL connection string      |
-| OPENAI_API_KEY  | OpenAI API key (required for LLM summarize) |
+| Variable                   | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| PORT                      | Server port (default: 3000)                                |
+| NODE_ENV                  | development or production                                  |
+| JWT_SECRET                | Secret key used to sign JWT tokens                          |
+| DATABASE_URL              | PostgreSQL connection string                               |
+| DEFAULT_STUDENT_PASSWORD  | Password set for new students created by parents (required for POST /students) |
+| OPENAI_API_KEY            | OpenAI API key (required for LLM summarize)                 |
 
 Example `.env` file:
 
@@ -62,6 +63,7 @@ PORT=3000
 NODE_ENV=development
 JWT_SECRET=your-secret-key
 DATABASE_URL=postgresql://localhost:5432/mentora
+DEFAULT_STUDENT_PASSWORD=change-this-secure-password
 OPENAI_API_KEY=your-openai-api-key
 ```
 
@@ -87,13 +89,15 @@ This will:
 
 ### 4. Run the Server
 
-Start the backend server.
+**`npm start`** – Runs `node src/app.js`. Starts the server once. Use for production or a single run. If you change code, you must stop and run it again to see changes.
+
+**`npm run dev`** – Runs `nodemon src/app.js`. Nodemon watches your files and restarts the server when you save. Use for local development so you don’t have to restart manually.
 
 ```bash
 npm start
 ```
 
-For development with automatic reload:
+Or, for development with automatic reload:
 
 ```bash
 npm run dev
@@ -142,14 +146,14 @@ POST /auth/signup
 
 Registers a new **parent or mentor**.
 
-Example request:
+Example request (use uppercase `PARENT` or `MENTOR` for `role`):
 
 ```json
 {
   "email": "user@example.com",
   "password": "secret123",
   "name": "John",
-  "role": "parent"
+  "role": "PARENT"
 }
 ```
 
@@ -162,7 +166,7 @@ Response:
     "id": 1,
     "email": "user@example.com",
     "name": "John",
-    "role": "parent"
+    "role": "PARENT"
   }
 }
 ```
@@ -192,7 +196,7 @@ Example request:
 GET /auth/me
 ```
 
-Returns the authenticated user's information.
+Returns the authenticated user's information. (The task refers to this as "GET /me"; it is implemented at `/auth/me`.)
 
 ---
 
@@ -238,6 +242,8 @@ Mentors can create lessons for students.
 ```
 POST /lessons
 ```
+
+The mentor is taken from the JWT (authenticated user); do not send `mentorId` in the body.
 
 Example request:
 
