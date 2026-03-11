@@ -53,8 +53,11 @@ Environment variables used in this project:
 | NODE_ENV                  | development or production                                  |
 | JWT_SECRET                | Secret key used to sign JWT tokens                          |
 | DATABASE_URL              | PostgreSQL connection string                               |
+| ALLOWED_ORIGINS           | Comma-separated trusted frontend origins for CORS          |
 | DEFAULT_STUDENT_PASSWORD  | Password set for new students created by parents (required for POST /students) |
 | OPENAI_API_KEY            | OpenAI API key (required for LLM summarize)                 |
+| OPENAI_MODEL              | OpenAI model name (default: gpt-4o-mini)                   |
+| OPENAI_TEMPERATURE        | LLM sampling temperature (0 to 2, default: 0.2)            |
 
 Example `.env` file:
 
@@ -63,8 +66,11 @@ PORT=3000
 NODE_ENV=development
 JWT_SECRET=your-secret-key
 DATABASE_URL=postgresql://localhost:5432/mentora
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 DEFAULT_STUDENT_PASSWORD=change-this-secure-password
 OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_TEMPERATURE=0.2
 ```
 
 ---
@@ -190,13 +196,17 @@ Example request:
 
 ---
 
+Login failures always return the same generic error (`Invalid email or password`) to avoid user-enumeration leaks.
+
+---
+
 ### Get Current User
 
 ```
-GET /auth/me
+GET /me
 ```
 
-Returns the authenticated user's information. (The task refers to this as "GET /me"; it is implemented at `/auth/me`.)
+Returns the authenticated user's information.
 
 ---
 
@@ -220,6 +230,7 @@ Example request:
 ```
 
 The student is automatically linked to the authenticated parent.
+If a student account is already linked to another parent, it cannot be re-linked.
 
 ---
 
@@ -233,9 +244,9 @@ Returns all students belonging to the logged-in parent.
 
 ---
 
-# Lesson APIs (Mentor Only)
+# Lesson APIs
 
-Mentors can create lessons for students.
+Mentors can create lessons for students. Parents and mentors can browse lesson lists/details.
 
 ### Create Lesson
 
@@ -243,12 +254,13 @@ Mentors can create lessons for students.
 POST /lessons
 ```
 
-The mentor is taken from the JWT (authenticated user); do not send `mentorId` in the body.
+`mentorId` is required in the request body and must match the authenticated mentor.
 
 Example request:
 
 ```json
 {
+  "mentorId": 7,
   "title": "Math 101",
   "description": "Introduction to algebra"
 }
@@ -304,7 +316,7 @@ Rules:
 
 ---
 
-# Session API (Mentor Only)
+# Session API
 
 Mentors can create sessions for lessons they own.
 
@@ -324,6 +336,20 @@ Example request:
   "summary": "Covered basic concepts"
 }
 ```
+
+---
+
+### Join Session
+
+```
+POST /sessions/:id/join
+```
+
+Authenticated mentors, parents, and students can join a session if they are authorized:
+
+* mentor must own the lesson
+* parent must have at least one booked student for that lesson
+* student must be booked for that lesson
 
 ---
 
@@ -378,7 +404,7 @@ curl -X POST http://localhost:3000/llm/summarize \
   -d '{"text": "Your paragraph or article text that is at least 50 characters long goes here. The API will return a concise summary in a few bullet points or a short paragraph."}'
 ```
 
-**Assumptions:** Summary format is 3–6 bullet points or a short paragraph (max ~120 words). The LLM provider is configured via `OPENAI_API_KEY`; no API key is stored in the repository.
+**Assumptions:** Summary format is 3–6 bullet points or a short paragraph (max ~120 words). The LLM provider is configured via `OPENAI_API_KEY`; no API key is stored in the repository. Temperature can be tuned via `OPENAI_TEMPERATURE`.
 
 ---
 

@@ -42,7 +42,7 @@ export async function createSession(mentorId, { lessonId, date, topic, summary }
   });
 }
 
-export async function listByLessonId(mentorId, lessonId) {
+export async function listByLessonId(userId, role, lessonId) {
   const id = Number(lessonId);
   if (!id) {
     const error = new Error('Invalid lesson id');
@@ -50,13 +50,68 @@ export async function listByLessonId(mentorId, lessonId) {
     throw error;
   }
 
-  // Ensure the lesson belongs to the current mentor before returning its sessions.
-  const lesson = await lessonRepository.findByIdAndMentor(id, mentorId);
+  const lesson = await lessonRepository.findById(id);
   if (!lesson) {
     const error = new Error('Lesson not found');
     error.statusCode = 404;
     throw error;
   }
 
+  if (role === 'MENTOR' && lesson.mentorId !== userId) {
+    const error = new Error('Lesson not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
   return sessionRepository.findByLessonId(id);
+}
+
+export async function joinSession(userId, role, sessionId) {
+  const id = Number(sessionId);
+  if (!id) {
+    const error = new Error('Invalid session id');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const session = await sessionRepository.findByIdWithLesson(id);
+  if (!session) {
+    const error = new Error('Session not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (role === 'MENTOR') {
+    if (session.lesson.mentorId !== userId) {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
+  } else if (role === 'PARENT') {
+    const hasBooking = await sessionRepository.hasParentBookingForLesson(userId, session.lessonId);
+    if (!hasBooking) {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
+  } else if (role === 'STUDENT') {
+    const hasBooking = await sessionRepository.hasStudentBookingForLesson(userId, session.lessonId);
+    if (!hasBooking) {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
+  return {
+    message: 'Joined session successfully',
+    session: {
+      id: session.id,
+      lessonId: session.lessonId,
+      date: session.date,
+      topic: session.topic,
+      summary: session.summary,
+    },
+    joinedAt: new Date().toISOString(),
+  };
 }

@@ -28,3 +28,9 @@ export async function findByMentorId(mentorId) {
     orderBy: { createdAt: 'desc' },
   });
 }
+
+export async function findAll() {
+  return prisma.lesson.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+}

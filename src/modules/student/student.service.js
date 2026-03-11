@@ -31,6 +31,13 @@ export async function createStudent(parentId, { name, email }) {
       email: normalizedEmail,
       name: trimmedName,
     });
+  } else {
+    const linkedElsewhere = await studentRepository.hasAnyParentLinkForStudent(user.id);
+    if (linkedElsewhere) {
+      const error = new Error('This student is already linked to another parent');
+      error.statusCode = 409;
+      throw error;
+    }
   }
 
   const existing = await studentRepository.findParentStudentLink(parentId, user.id);

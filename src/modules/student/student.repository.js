@@ -47,3 +47,11 @@ export async function findParentStudentLink(parentUserId, studentUserId) {
     },
   });
 }
+
+export async function hasAnyParentLinkForStudent(studentUserId) {
+  const existing = await prisma.parentStudent.findFirst({
+    where: { studentUserId },
+    select: { id: true },
+  });
+  return Boolean(existing);
+}
