@@ -457,3 +457,21 @@ prisma
 ├── schema.prisma
 └── migrations
 ```
+## Notes on Assumptions, Design Decisions, and Architecture Choices
+
+### Assumptions
+- **Tech stack**: The backend is implemented in **Node.js** with Express and Prisma.
+- **User roles**: Assumed roles as suggested in google doc (e.g., `PARENT`, `MENTOR`, `STUDENT`) determine which actions are allowed on sessions and lessons.
+- **Authentication**: All protected endpoints assume a valid JWT is provided in the `Authorization` header.
+- **Data consistency**: It is assumed that referenced entities (e.g., `userId`, `lessonId`) exist when creating related records.
+- **Environment**: Assumes a Node.js runtime with access to a PostgreSQL database.
+
+### Design Decisions
+- **Layered structure**: Controllers, services, and repositories are separated to keep HTTP logic, business logic, and data access isolated.
+- **Validation at the edge**: Request payloads are validated in controllers before calling services.
+- **Standardized error handling**: Errors are returned with consistent structures (HTTP status + message) to simplify client handling.
+
+### Architecture Choices
+- **Modules**: Organized into modules such as `session` and `lesson`, each with its own controller, service, and repository.
+- **Database access**: Prisma is used as the ORM over PostgreSQL.
+- **Role enum normalization**: User roles are normalized in the database.
