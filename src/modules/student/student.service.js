@@ -25,19 +25,24 @@ export async function createStudent(parentId, { name, email }) {
       ? String(email).trim().toLowerCase()
       : `student-${parentId}-${Date.now()}@placeholder.mentora`;
 
-  let user = await authRepository.findByEmail(normalizedEmail, 'STUDENT');
-  if (!user) {
-    user = await authRepository.createStudentUser({
-      email: normalizedEmail,
-      name: trimmedName,
-    });
-  } else {
+  let user = await authRepository.findByEmail(normalizedEmail);
+  if (user) {
+    if (user.role !== 'STUDENT') {
+      const error = new Error('This email is already registered');
+      error.statusCode = 409;
+      throw error;
+    }
     const linkedElsewhere = await studentRepository.hasAnyParentLinkForStudent(user.id);
     if (linkedElsewhere) {
       const error = new Error('This student is already linked to another parent');
       error.statusCode = 409;
       throw error;
     }
+  } else {
+    user = await authRepository.createStudentUser({
+      email: normalizedEmail,
+      name: trimmedName,
+    });
   }
 
   const existing = await studentRepository.findParentStudentLink(parentId, user.id);
