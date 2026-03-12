@@ -20,7 +20,9 @@ export async function listForCurrentMentor(req, res) {
     let lessons;
     if (req.role === 'MENTOR') {
       lessons = await lessonService.listByMentor(req.userId);
-    } else if (req.role === 'PARENT' || req.role === 'STUDENT') {
+    } else if (req.role === 'PARENT') {
+      lessons = await lessonService.listAll();
+    } else if (req.role === 'STUDENT') {
       lessons = await lessonService.listByStudentBookings(req.userId);
     } else {
       lessons = [];
