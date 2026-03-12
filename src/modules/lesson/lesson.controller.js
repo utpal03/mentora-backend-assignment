@@ -17,10 +17,14 @@ export async function create(req, res) {
 
 export async function listForCurrentMentor(req, res) {
   try {
-    const lessons =
-      req.role === 'MENTOR'
-        ? await lessonService.listByMentor(req.userId)
-        : await lessonService.listAll();
+    let lessons;
+    if (req.role === 'MENTOR') {
+      lessons = await lessonService.listByMentor(req.userId);
+    } else if (req.role === 'PARENT' || req.role === 'STUDENT') {
+      lessons = await lessonService.listByStudentBookings(req.userId);
+    } else {
+      lessons = [];
+    }
     res.json(lessons);
   } catch (err) {
     const status = err.statusCode || 500;

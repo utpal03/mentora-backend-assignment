@@ -56,3 +56,7 @@ export async function listByMentor(mentorId) {
 export async function listAll() {
   return lessonRepository.findAll();
 }
+
+export async function listByStudentBookings(studentUserId) {
+  return lessonRepository.findByStudentBookings(studentUserId);
+}

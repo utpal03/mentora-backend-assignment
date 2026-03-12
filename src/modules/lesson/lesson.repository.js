@@ -34,3 +34,16 @@ export async function findAll() {
     orderBy: { createdAt: 'desc' },
   });
 }
+
+export async function findByStudentBookings(studentUserId) {
+  return prisma.lesson.findMany({
+    where: {
+      bookings: {
+        some: {
+          studentUserId,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+}

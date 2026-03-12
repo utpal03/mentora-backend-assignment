@@ -57,10 +57,26 @@ export async function listByLessonId(userId, role, lessonId) {
     throw error;
   }
 
-  if (role === 'MENTOR' && lesson.mentorId !== userId) {
-    const error = new Error('Lesson not found');
-    error.statusCode = 404;
-    throw error;
+  if (role === 'MENTOR') {
+    if (lesson.mentorId !== userId) {
+      const error = new Error('Lesson not found');
+      error.statusCode = 404;
+      throw error;
+    }
+  } else if (role === 'PARENT') {
+    const hasBooking = await sessionRepository.hasParentBookingForLesson(userId, id);
+    if (!hasBooking) {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
+  } else if (role === 'STUDENT') {
+    const hasBooking = await sessionRepository.hasStudentBookingForLesson(userId, id);
+    if (!hasBooking) {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
   }
 
   return sessionRepository.findByLessonId(id);
